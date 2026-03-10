@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Modal, View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
-import { generateQRCode, pollQRCode } from '../services/bilibili';
+import { generateQRCode, pollQRCode, getUserInfo } from '../services/bilibili';
 import { useAuthStore } from '../store/authStore';
 
 interface Props {
@@ -14,6 +14,7 @@ export function LoginModal({ visible, onClose }: Props) {
   const [status, setStatus] = useState<'loading' | 'waiting' | 'scanned' | 'done' | 'error'>('loading');
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const login = useAuthStore(s => s.login);
+  const setProfile = useAuthStore(s => s.setProfile);
 
   useEffect(() => {
     if (!visible) return;
@@ -39,6 +40,8 @@ export function LoginModal({ visible, onClose }: Props) {
         clearInterval(pollRef.current!);
         await login(result.cookie, '', '');
         setStatus('done');
+        // 登录后异步拉取用户头像和昵称
+        getUserInfo().then(info => setProfile(info.face, info.uname, String(info.mid))).catch(() => {});
         onClose();
       }
     }, 2000);

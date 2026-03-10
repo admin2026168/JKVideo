@@ -35,12 +35,18 @@ export interface Comment {
 }
 
 export interface PlayUrlResponse {
-  durl: Array<{
+  durl?: Array<{
     url: string;
     length: number;
     size: number;
   }>;
+  dash?: {
+    video: Array<{ id: number; baseUrl: string; codecs: string; bandwidth: number }>;
+    audio: Array<{ id: number; baseUrl: string; codecs: string; bandwidth: number }>;
+  };
   quality: number;
+  accept_quality: number[];
+  accept_description: string[];
 }
 
 export interface QRCodeInfo {

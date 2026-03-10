@@ -10,6 +10,7 @@ import { VideoPlayer } from '../../components/VideoPlayer';
 import { CommentItem } from '../../components/CommentItem';
 import { useVideoDetail } from '../../hooks/useVideoDetail';
 import { useComments } from '../../hooks/useComments';
+import { useVideoStore } from '../../store/videoStore';
 import { formatCount } from '../../utils/format';
 
 type Tab = 'intro' | 'comments';
@@ -17,13 +18,25 @@ type Tab = 'intro' | 'comments';
 export default function VideoDetailScreen() {
   const { bvid } = useLocalSearchParams<{ bvid: string }>();
   const router = useRouter();
-  const { video, streamUrl, loading: videoLoading } = useVideoDetail(bvid as string);
+  const { video, playData, loading: videoLoading, qualities, currentQn, changeQuality } = useVideoDetail(bvid as string);
   const { comments, loading: cmtLoading, load: loadComments } = useComments(video?.aid ?? 0);
   const [tab, setTab] = useState<Tab>('comments');
+  const { setVideo, clearVideo } = useVideoStore();
+
+  useEffect(() => {
+    clearVideo();
+  }, [bvid]);
 
   useEffect(() => {
     if (video?.aid) loadComments();
   }, [video?.aid]);
+
+  function handleMiniPlayer() {
+    if (video) {
+      setVideo(bvid as string, video.title, video.pic);
+      router.back();
+    }
+  }
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -32,9 +45,18 @@ export default function VideoDetailScreen() {
           <Ionicons name="chevron-back" size={24} color="#212121" />
         </TouchableOpacity>
         <Text style={styles.topTitle} numberOfLines={1}>{video?.title ?? '视频详情'}</Text>
+        <TouchableOpacity style={styles.miniBtn} onPress={handleMiniPlayer}>
+          <Ionicons name="copy-outline" size={22} color="#212121" />
+        </TouchableOpacity>
       </View>
 
-      <VideoPlayer uri={streamUrl} />
+      <VideoPlayer
+        playData={playData}
+        qualities={qualities}
+        currentQn={currentQn}
+        onQualityChange={changeQuality}
+        onMiniPlayer={handleMiniPlayer}
+      />
 
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
         {videoLoading ? (
@@ -111,6 +133,7 @@ const styles = StyleSheet.create({
   topBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 8, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#eee' },
   backBtn: { padding: 4 },
   topTitle: { flex: 1, fontSize: 15, fontWeight: '600', marginLeft: 4, color: '#212121' },
+  miniBtn: { padding: 4 },
   scroll: { flex: 1 },
   loader: { marginVertical: 30 },
   titleSection: { padding: 14 },

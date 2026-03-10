@@ -1,20 +1,24 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getUserInfo } from '../services/bilibili';
 
 interface AuthState {
   sessdata: string | null;
   uid: string | null;
   username: string | null;
+  face: string | null;
   isLoggedIn: boolean;
   login: (sessdata: string, uid: string, username?: string) => Promise<void>;
   logout: () => Promise<void>;
   restore: () => Promise<void>;
+  setProfile: (face: string, username: string, uid: string) => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
   sessdata: null,
   uid: null,
   username: null,
+  face: null,
   isLoggedIn: false,
 
   login: async (sessdata, uid, username) => {
@@ -27,16 +31,21 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   logout: async () => {
-    await AsyncStorage.multiRemove(['SESSDATA', 'UID', 'USERNAME']);
-    set({ sessdata: null, uid: null, username: null, isLoggedIn: false });
+    await AsyncStorage.multiRemove(['SESSDATA', 'UID', 'USERNAME', 'FACE']);
+    set({ sessdata: null, uid: null, username: null, face: null, isLoggedIn: false });
   },
 
   restore: async () => {
     const sessdata = await AsyncStorage.getItem('SESSDATA');
-    const uid = await AsyncStorage.getItem('UID');
-    const username = await AsyncStorage.getItem('USERNAME');
     if (sessdata) {
-      set({ sessdata, uid, username, isLoggedIn: true });
+      set({ sessdata, isLoggedIn: true });
+      try {
+        const info = await getUserInfo();
+        await AsyncStorage.setItem('FACE', info.face);
+        set({ face: info.face, username: info.uname, uid: String(info.mid) });
+      } catch {}
     }
   },
+
+  setProfile: (face, username, uid) => set({ face, username, uid }),
 }));
