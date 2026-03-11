@@ -19,6 +19,8 @@ export function parseDanmakuXml(xml: string): DanmakuItem[] {
   return items.sort((a, b) => a.time - b.time);
 }
 
+
 export function danmakuColorToCss(color: number): string {
   return '#' + (color >>> 0 & 0xFFFFFF).toString(16).padStart(6, '0');
 }
+

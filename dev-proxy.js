@@ -1,4 +1,5 @@
 const https = require('https');
+const zlib = require('zlib');
 const express = require('express');
 const app = express();
 
@@ -29,8 +30,9 @@ function makeProxy(targetHost) {
         'Referer':         'https://www.bilibili.com',
         'Origin':          'https://www.bilibili.com',
         'User-Agent':      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36',
-        'Accept':          'application/json, text/plain, */*',
-        'Accept-Language': 'zh-CN,zh;q=0.9',
+        'Accept':            'application/json, text/plain, */*',
+        'Accept-Language':   'zh-CN,zh;q=0.9',
+        'Accept-Encoding':   'identity',
       },
     };
 
@@ -55,6 +57,41 @@ function makeProxy(targetHost) {
 
 app.use('/bilibili-api',      makeProxy('api.bilibili.com'));
 app.use('/bilibili-passport', makeProxy('passport.bilibili.com'));
+
+// Dedicated comment proxy: buffer response and decompress by magic bytes (not Content-Encoding header)
+app.use('/bilibili-comment', (req, res) => {
+  const options = {
+    hostname: 'comment.bilibili.com',
+    path:     req.url,
+    method:   req.method,
+    headers: {
+      'Referer':         'https://www.bilibili.com',
+      'User-Agent':      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36',
+      'Accept':          '*/*',
+      'Accept-Language': 'zh-CN,zh;q=0.9',
+    },
+  };
+  const proxy = https.request(options, (proxyRes) => {
+    res.setHeader('Content-Type', proxyRes.headers['content-type'] || 'text/xml; charset=utf-8');
+    const chunks = [];
+    proxyRes.on('data', chunk => chunks.push(chunk));
+    proxyRes.on('end', () => {
+      const buf = Buffer.concat(chunks);
+      if (buf[0] === 0x1f && buf[1] === 0x8b) {
+        // actual gzip data — decompress regardless of Content-Encoding header
+        zlib.gunzip(buf, (err, result) => {
+          if (err) res.status(502).end('gunzip error: ' + err.message);
+          else res.end(result);
+        });
+      } else {
+        res.end(buf);
+      }
+    });
+    proxyRes.on('error', (err) => res.status(502).json({ error: err.message }));
+  });
+  proxy.on('error', (err) => res.status(502).json({ error: err.message }));
+  req.pipe(proxy);
+});
 
 // Image CDN proxy — strips the host segment and forwards to the real CDN with Referer
 app.use('/bilibili-img', (req, res) => {

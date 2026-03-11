@@ -22,14 +22,14 @@ export function VideoPlayer({ playData, qualities, currentQn, onQualityChange, o
   const [fullscreen, setFullscreen] = useState(false);
   const { width, height } = useWindowDimensions();
   const VIDEO_HEIGHT = width * 0.5625;
-  // When ScreenOrientation is unavailable (Expo Go), simulate landscape via transform
+  // In Expo Go ScreenOrientation is unavailable; simulate landscape via CSS transform
   const needsRotation = !ScreenOrientation && fullscreen;
   const lastTimeRef = useRef(0);
 
   const handleEnterFullscreen = async () => {
-    setFullscreen(true);
     if (Platform.OS !== 'web')
       await ScreenOrientation?.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE_RIGHT);
+    setFullscreen(true);
   };
 
   const handleExitFullscreen = async () => {
@@ -85,7 +85,7 @@ export function VideoPlayer({ playData, qualities, currentQn, onQualityChange, o
         />
       )}
 
-      <Modal visible={fullscreen} animationType="fade" statusBarTranslucent>
+      <Modal visible={fullscreen} animationType="none" statusBarTranslucent>
         <StatusBar hidden />
         <View style={{ flex: 1, backgroundColor: '#000', justifyContent: 'center', alignItems: 'center' }}>
           <View style={needsRotation
@@ -104,7 +104,7 @@ export function VideoPlayer({ playData, qualities, currentQn, onQualityChange, o
               isFullscreen={true}
               initialTime={lastTimeRef.current}
               onTimeUpdate={(t) => { lastTimeRef.current = t; onTimeUpdate?.(t); }}
-              style={{ width: '100%', height: '100%' }}
+              style={needsRotation ? { width: height, height: width } : { flex: 1 }}
             />
           </View>
         </View>

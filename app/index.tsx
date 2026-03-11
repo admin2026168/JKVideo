@@ -118,6 +118,7 @@ export default function HomeScreen() {
         }
         onEndReached={() => load()}
         onEndReachedThreshold={0.5}
+        extraData={visibleBigKey}
         viewabilityConfig={VIEWABILITY_CONFIG}
         onViewableItemsChanged={onViewableItemsChangedRef}
         ListFooterComponent={

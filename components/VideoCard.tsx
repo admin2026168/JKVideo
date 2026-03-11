@@ -6,7 +6,7 @@ import { formatCount, formatDuration } from '../utils/format';
 import { proxyImageUrl } from '../utils/imageUrl';
 
 const { width } = Dimensions.get('window');
-const CARD_WIDTH = (width - 24) / 2;
+const CARD_WIDTH = (width - 14) / 2;
 
 interface Props {
   item: VideoItem;
@@ -39,7 +39,7 @@ export function VideoCard({ item, onPress }: Props) {
 }
 
 const styles = StyleSheet.create({
-  card: { width: CARD_WIDTH, marginBottom: 12, backgroundColor: '#fff', borderRadius: 6, overflow: 'hidden' },
+  card: { width: CARD_WIDTH, marginBottom: 6, backgroundColor: '#fff', borderRadius: 6, overflow: 'hidden' },
   thumbContainer: { position: 'relative' },
   thumb: { width: CARD_WIDTH, height: CARD_WIDTH * 0.5625 },
   durationBadge: { position: 'absolute', bottom: 4, right: 4, backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 3, paddingHorizontal: 4, paddingVertical: 1 },

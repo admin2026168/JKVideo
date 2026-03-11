@@ -1,28 +1,33 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { getRecommendFeed } from '../services/bilibili';
 import type { VideoItem } from '../services/types';
 
 export function useVideoList() {
   const [videos, setVideos] = useState<VideoItem[]>([]);
-  const [freshIdx, setFreshIdx] = useState(0);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
+  // Use refs to avoid stale closures — load() has stable identity
+  const loadingRef = useRef(false);
+  const freshIdxRef = useRef(0);
+
   const load = useCallback(async (reset = false) => {
-    if (loading) return;
-    const idx = reset ? 0 : freshIdx;
+    if (loadingRef.current) return;
+    loadingRef.current = true;
+    const idx = reset ? 0 : freshIdxRef.current;
     setLoading(true);
     try {
       const data = await getRecommendFeed(idx);
       setVideos(prev => reset ? data : [...prev, ...data]);
-      setFreshIdx(idx + 1);
+      freshIdxRef.current = idx + 1;
     } catch (e) {
       console.error('Failed to load videos', e);
     } finally {
+      loadingRef.current = false;
       setLoading(false);
       setRefreshing(false);
     }
-  }, [loading, freshIdx]);
+  }, []); // stable — no stale closure risk
 
   const refresh = useCallback(() => {
     setRefreshing(true);
