@@ -99,10 +99,10 @@ export default function HomeScreen() {
       <Animated.FlatList
         style={styles.listContainer}
         data={rows}
-        keyExtractor={(row: any, index) =>
+        keyExtractor={(row: any) =>
           row.type === 'big'
             ? `big-${row.item.bvid}`
-            : `pair-${row.left.bvid}-${row.right?.bvid ?? 'empty'}-${index}`
+            : `pair-${row.left.bvid}-${row.right?.bvid ?? 'empty'}`
         }
         contentContainerStyle={{
           paddingTop: insets.top + NAV_H + 6,

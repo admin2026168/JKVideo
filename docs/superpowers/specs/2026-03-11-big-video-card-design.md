@@ -53,7 +53,7 @@ interface BigVideoCardProps {
 ```
 BigVideoCard (TouchableOpacity)
 ├── 封面图 (Image, 16:9 全宽)
-├── 视频播放器 (NativeVideoPlayer, position: absolute, isVisible 时加载)
+├── 视频播放器 (react-native-video <Video>, position: absolute, isVisible 时加载；直接使用 <Video> 而非 NativeVideoPlayer，因为不需要控制条/热力图等全功能组件)
 │   └── muted, autoplay, qn=16
 ├── 封面遮罩 (Animated.View, opacity 1→0 淡出)
 └── 底部信息栏

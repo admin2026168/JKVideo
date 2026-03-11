@@ -45,7 +45,7 @@ export function BigVideoCard({ item, isVisible, onPress }: Props) {
   // Fetch play URL when visible for the first time
   useEffect(() => {
     if (!isVisible || videoUrl) return;
-
+    let cancelled = false;
     (async () => {
       try {
         // cid may be missing from feed items; fetch detail if needed
@@ -54,25 +54,25 @@ export function BigVideoCard({ item, isVisible, onPress }: Props) {
           const detail = await getVideoDetail(item.bvid);
           cid = detail.cid ?? detail.pages?.[0]?.cid;
         }
-        if (!cid) return;
-
+        if (!cid || cancelled) return;
         const playData = await getPlayUrl(item.bvid, cid, 16);
-
+        if (cancelled) return;
         if (playData.dash) {
-          setIsDash(true);
+          if (!cancelled) setIsDash(true);
           try {
             const mpdUri = await buildDashMpdUri(playData, 16);
-            setVideoUrl(mpdUri);
+            if (!cancelled) setVideoUrl(mpdUri);
           } catch {
-            setVideoUrl(playData.dash.video[0]?.baseUrl);
+            if (!cancelled) setVideoUrl(playData.dash.video[0]?.baseUrl);
           }
         } else {
-          setVideoUrl(playData.durl?.[0]?.url);
+          if (!cancelled) setVideoUrl(playData.durl?.[0]?.url);
         }
       } catch (e) {
         console.warn('BigVideoCard: failed to load play URL', e);
       }
     })();
+    return () => { cancelled = true; };
     // videoUrl intentionally excluded — re-fetch guard prevents redundant fetches after URL is set
   }, [isVisible, item.bvid]);
 
