@@ -51,7 +51,7 @@ const VIEWABILITY_CONFIG = { itemVisiblePercentThreshold: 50 };
 type TabKey = "hot" | "live";
 
 const TABS: { key: TabKey; label: string }[] = [
-  { key: "hot", label: "热门1" },
+  { key: "hot", label: "热门2" },
   { key: "live", label: "直播" },
 ];
 
