@@ -1,15 +1,17 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '../store/authStore';
 import { useSettingsStore } from '../store/settingsStore';
+import { useCheckUpdate } from '../hooks/useCheckUpdate';
 
 export default function SettingsScreen() {
   const router = useRouter();
   const { isLoggedIn, logout } = useAuthStore();
   const { coverQuality, setCoverQuality } = useSettingsStore();
+  const { currentVersion, isChecking, downloadProgress, checkUpdate } = useCheckUpdate();
 
   const handleLogout = async () => {
     await logout();
@@ -24,6 +26,35 @@ export default function SettingsScreen() {
         </TouchableOpacity>
         <Text style={styles.topTitle}>设置</Text>
         <View style={styles.spacer} />
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionLabel}>版本信息</Text>
+        <View style={styles.versionRow}>
+          <Text style={styles.versionLabel}>当前版本</Text>
+          <Text style={styles.versionValue}>v{currentVersion}</Text>
+        </View>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionLabel}>更新</Text>
+        <TouchableOpacity
+          style={styles.updateBtn}
+          onPress={checkUpdate}
+          activeOpacity={0.7}
+          disabled={isChecking || downloadProgress !== null}
+        >
+          {isChecking ? (
+            <>
+              <ActivityIndicator size="small" color="#00AEEC" style={{ marginRight: 8 }} />
+              <Text style={styles.updateBtnText}>检查中...</Text>
+            </>
+          ) : downloadProgress !== null ? (
+            <Text style={styles.updateBtnText}>下载中 {downloadProgress}%</Text>
+          ) : (
+            <Text style={styles.updateBtnText}>检查更新</Text>
+          )}
+        </TouchableOpacity>
       </View>
 
       <View style={styles.section}>
@@ -102,6 +133,19 @@ const styles = StyleSheet.create({
   optionActive: { borderColor: '#00AEEC', backgroundColor: '#e8f7fd' },
   optionText: { fontSize: 14, color: '#666' },
   optionTextActive: { color: '#00AEEC', fontWeight: '600' },
+  versionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  versionLabel: { fontSize: 14, color: '#212121' },
+  versionValue: { fontSize: 14, color: '#999' },
+  updateBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+  },
+  updateBtnText: { fontSize: 14, color: '#00AEEC', fontWeight: '600' },
   logoutBtn: {
     margin: 24,
     paddingVertical: 12,

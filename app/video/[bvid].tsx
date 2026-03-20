@@ -460,7 +460,7 @@ const styles = StyleSheet.create({
     paddingBottom: 0,
     paddingTop: 12,
   },
-  avatar: { width: 48, height: 48, borderRadius: 19, marginRight: 10 },
+  avatar: { width: 48, height: 48, borderRadius:30, marginRight: 10 },
   upName: { flex: 1, fontSize: 14, color: "#212121", fontWeight: "500" },
   followBtn: {
     backgroundColor: "#00AEEC",
